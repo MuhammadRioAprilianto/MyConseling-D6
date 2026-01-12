@@ -1,0 +1,85 @@
+<%- include('partials/header') %>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card p-4 mb-4">
+            <h5 class="mb-4">Form Pendaftaran</h5>
+            <form action="/reservasi/add" method="POST">
+                <input type="hidden" name="mhsId" value="<%= mhsId %>">
+                <div class="mb-3">
+                    <label class="form-label small">NIM</label>
+                    <input type="text" name="nim" class="form-control" placeholder="Masukkan NIM" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Nama Lengkap</label>
+                    <input type="text" name="nama" class="form-control" placeholder="Nama Mahasiswa" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small">Pilih Psikolog</label>
+                    <select name="psikologId" class="form-select" required>
+                        <% psikolog.forEach(p => { %>
+                            <option value="<%= p.psikolog_id %>"><%= p.nama_psikolog %></option>
+                        <% }) %>
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Tanggal</label>
+                        <input type="date" name="tanggal" class="form-control" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label small">Waktu</label>
+                        <input type="time" name="waktu" class="form-control" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Ajukan Konseling</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card p-4">
+            <h5 class="mb-4">Status Reservasi Saya</h5>
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Psikolog</th>
+                            <th>Jadwal</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if(reservasi.length > 0) { %>
+                            <% reservasi.forEach(r => { %>
+                                <tr>
+                                    <td>ID Psikolog: <%= r.psikolog_id %></td>
+                                    <td><%= r.tanggal %> <br> <small class="text-muted"><%= r.waktu %></small></td>
+                                    <td>
+                                        <% if(r.status == 'menunggu') { %>
+                                            <span class="badge bg-warning text-dark">Menunggu</span>
+                                        <% } else if(r.status == 'dikonfirmasi') { %>
+                                            <span class="badge bg-success">Dikonfirmasi</span>
+                                        <% } else { %>
+                                            <span class="badge bg-danger">Ditolak</span>
+                                        <% } %>
+                                    </td>
+                                    <td>
+                                        <a href="/reservasi/delete/<%= r.id %>/<%= mhsId %>" 
+                                           class="btn btn-sm btn-outline-danger" 
+                                           onclick="return confirm('Batalkan reservasi?')">Batal</a>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr><td colspan="4" class="text-center text-muted">Belum ada riwayat pendaftaran</td></tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,28 @@
+<%- include('partials/header') %>
+<div class="row">
+    <div class="col-md-4">
+        <div class="card p-3 shadow-sm border-0">
+            <h5>Tambah Psikolog</h5>
+            <form action="/admin/psikolog/add" method="POST">
+                <input type="text" name="nama" class="form-control mb-2" placeholder="Nama Psikolog" required>
+                <input type="text" name="jadwal" class="form-control mb-2" placeholder="Jadwal (ex: Senin 9-12)" required>
+                <button class="btn btn-primary w-100">Simpan</button>
+            </form>
+        </div>
+    </div>
+    <div class="col-md-8">
+        <div class="card p-3 shadow-sm border-0">
+            <h5>Daftar Psikolog & Jadwal</h5>
+            <table class="table mt-2">
+                <thead><tr><th>Nama</th><th>Jadwal</th><th>Status</th></tr></thead>
+                <tbody>
+                    <% psikolog.forEach(p => { %>
+                        <tr><td><%= p.nama_psikolog %></td><td><%= p.jadwal_tugas %></td>
+                        <td><span class="badge bg-success">Aktif</span></td></tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<%- include('partials/footer') %>

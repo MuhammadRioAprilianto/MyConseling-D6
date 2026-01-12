@@ -1,0 +1,56 @@
+<%- include('partials/header') %>
+
+<div class="card p-4 mb-4 bg-primary text-white">
+    <div class="d-flex justify-content-between align-items-center">
+        <div>
+            <h4>Dashboard Psikolog</h4>
+            <p class="mb-0">Kelola permintaan konseling mahasiswa</p>
+        </div>
+        <div class="form-check form-switch bg-white text-dark p-2 px-4 rounded-pill">
+            <input class="form-check-input" type="checkbox" id="statusKerja" checked>
+            <label class="form-check-label" for="statusKerja">Status: Siap Bertugas</label>
+        </div>
+    </div>
+</div>
+
+<div class="card p-4">
+    <h5 class="mb-4">Daftar Reservasi Masuk</h5>
+    <div class="table-responsive">
+        <table class="table align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Mahasiswa</th>
+                    <th>Jadwal Diajukan</th>
+                    <th>Keputusan</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% daftar.forEach(d => { %>
+                    <tr>
+                        <td>
+                            <strong><%= d.nama_mhs %></strong><br>
+                            <small class="text-muted">NIM: <%= d.nim %></small>
+                        </td>
+                        <td><%= d.tanggal %> | <%= d.waktu %></td>
+                        <td>
+                            <% if(d.status === 'menunggu') { %>
+                                <form action="/psikolog/update-status" method="POST" class="d-inline">
+                                    <input type="hidden" name="resId" value="<%= d.id %>">
+                                    <input type="hidden" name="psiId" value="<%= psiId %>">
+                                    <button name="status" value="dikonfirmasi" class="btn btn-sm btn-success px-3">Terima</button>
+                                    <button name="status" value="ditolak" class="btn btn-sm btn-danger px-3">Tolak</button>
+                                </form>
+                            <% } else { %>
+                                <span class="badge <%= d.status === 'dikonfirmasi' ? 'bg-success' : 'bg-danger' %>">
+                                    <%= d.status.toUpperCase() %>
+                                </span>
+                            <% } %>
+                        </td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<%- include('partials/footer') %>
