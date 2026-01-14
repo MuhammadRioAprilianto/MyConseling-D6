@@ -1,9 +1,7 @@
-version: "3.8"
-
 services:
   db_service:
     image: mysql:8.0
-    container_name: db_${GROUP_NAME}
+    container_name: db_D6
     restart: always
     environment:
       MYSQL_DATABASE: ${DB_NAME}
@@ -11,26 +9,20 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
       MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
-      # Volume untuk inisialisasi awal database
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
-      # Volume untuk menyimpan data secara PERMANEN di laptop/Raspberry Pi
-      # Ini memastikan data tidak hilang saat laptop dimatikan
       - ./mysql_data:/var/lib/mysql 
     networks:
       - conseling_net
 
   app_service:
     build: ./app
-    container_name: app_${GROUP_NAME}
+    container_name: app_D6
     restart: always
-    expose:
-      - "3000"
     environment:
       - DB_HOST=db_service
       - DB_USER=${DB_USER}
       - DB_PASS=${DB_PASS}
       - DB_NAME=${DB_NAME}
-      - APP_PORT=3000
     depends_on:
       - db_service
     networks:
@@ -38,7 +30,7 @@ services:
 
   nginx_service:
     image: nginx:alpine
-    container_name: nginx_${GROUP_NAME}
+    container_name: nginx_D6
     restart: always
     ports:
       - "${APP_PORT}:80"
