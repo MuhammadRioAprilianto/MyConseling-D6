@@ -2,56 +2,77 @@
 
 <div class="container">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="fw-bold text-primary">Daftar Pengajuan Konseling</h3>
-        <span class="badge bg-info p-2">Psikolog ID: <%= psiId %></span>
+        <div>
+            <h3 class="fw-bold text-primary mb-0">Panel Verifikasi Psikolog</h3>
+            <p class="text-muted">Kelola antrean dan konfirmasi jadwal mahasiswa</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-dark px-3 py-2">ID PSIKOLOG: <%= psiId %></span>
+        </div>
     </div>
 
     <div class="card shadow-sm border-0">
-        <div class="card-body p-4">
+        <div class="card-body p-0">
             <div class="table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th>Mahasiswa</th>
+                            <th class="ps-4 py-3">Data Mahasiswa</th>
                             <th>NIM</th>
-                            <th>Jadwal</th>
-                            <th>Status saat ini</th>
-                            <th>Aksi Konfirmasi</th>
+                            <th>Jadwal Konseling</th>
+                            <th>Status</th>
+                            <th class="text-center">Aksi</th>
                         </tr>
                     </thead>
                     <tbody>
                         <% if(daftar.length > 0) { %>
                             <% daftar.forEach(r => { %>
                                 <tr>
-                                    <td><strong><%= r.nama_mhs %></strong></td>
-                                    <td><%= r.nim %></td>
-                                    <td>
-                                        <div class="small fw-bold"><%= r.tanggal.toLocaleDateString('id-ID') %></div>
-                                        <div class="text-muted small"><%= r.waktu %></div>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark"><%= r.nama_mhs %></div>
+                                        <small class="text-muted">ID Reservasi: #<%= r.id %></small>
                                     </td>
+                                    <td><span class="font-monospace"><%= r.nim %></span></td>
                                     <td>
-                                        <span class="badge rounded-pill <%= r.status === 'menunggu' ? 'bg-warning text-dark' : 'bg-success' %>">
-                                            <%= r.status %>
-                                        </span>
+                                        <div class="fw-bold"><%= r.tanggal.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></div>
+                                        <div class="badge bg-light text-dark border"><%= r.waktu %> WIB</div>
                                     </td>
                                     <td>
                                         <% if(r.status === 'menunggu') { %>
-                                            <form action="/psikolog/update-status" method="POST" class="d-inline">
+                                            <span class="badge rounded-pill bg-warning text-dark px-3">Menunggu</span>
+                                        <% } else { %>
+                                            <span class="badge rounded-pill bg-success px-3">Dikonfirmasi</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if(r.status === 'menunggu') { %>
+                                            <form action="/psikolog/update-status" method="POST" class="d-inline-flex gap-2">
                                                 <input type="hidden" name="resId" value="<%= r.id %>">
                                                 <input type="hidden" name="psiId" value="<%= psiId %>">
                                                 
-                                                <button type="submit" name="status" value="dikonfirmasi" class="btn btn-sm btn-success me-1">Terima</button>
-                                                <button type="submit" name="status" value="ditolak" class="btn btn-sm btn-danger" onclick="return confirm('Tolak dan hapus pengajuan ini?')">Tolak</button>
+                                                <button type="submit" name="status" value="dikonfirmasi" class="btn btn-sm btn-success px-3 fw-bold">
+                                                    Terima
+                                                </button>
+                                                
+                                                <button type="submit" name="status" value="ditolak" class="btn btn-sm btn-outline-danger px-3 fw-bold" 
+                                                        onclick="return confirm('Tolak dan hapus jadwal ini?')">
+                                                    Tolak
+                                                </button>
                                             </form>
                                         <% } else { %>
-                                            <button class="btn btn-sm btn-secondary" disabled>Selesai</button>
+                                            <button class="btn btn-sm btn-secondary px-4" disabled>Sudah Beres</button>
                                         <% } %>
                                     </td>
                                 </tr>
                             <% }) %>
                         <% } else { %>
                             <tr>
-                                <td colspan="5" class="text-center py-5 text-muted">Belum ada pengajuan masuk untuk Anda.</td>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="py-4">
+                                        <h1 class="display-6 text-muted">☕</h1>
+                                        <p class="text-muted">Tidak ada antrean pendaftaran untuk saat ini.</p>
+                                    </div>
+                                </td>
                             </tr>
                         <% } %>
                     </tbody>
