@@ -1,71 +1,115 @@
 <%- include('partials/header') %>
 <div class="container py-4">
     <div class="row">
-        <div class="col-12">
+        <div class="col-md-4">
             <div class="card p-4 shadow-sm border-0">
-                <h5 class="fw-bold text-primary mb-3">Daftar Reservasi Saya</h5>
-                <table class="table align-middle">
-                    <thead>
-                        <tr>
-                            <th>Psikolog & Jadwal</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% reservasi.forEach(r => { %>
-                        <tr>
-                            <td>
-                                <strong>ID Psikolog: <%= r.psikolog_id %></strong><br>
-                                <small><%= r.tanggal.toLocaleDateString('id-ID') %> | <%= r.waktu %></small>
-                            </td>
-                            <td>
-                                <span class="badge <%= r.status=='menunggu'?'bg-warning':(r.status=='ditolak'?'bg-danger':'bg-success') %>">
-                                    <%= r.status.toUpperCase() %>
-                                </span>
-                                <% if(r.status == 'ditolak') { %> <br><small>Sebab: <%= r.pesan_tolak %></small> <% } %>
-                            </td>
-                            <td>
-                                <% if(r.status != 'dikonfirmasi') { %>
-                                    <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#modalEdit<%= r.id %>">Edit</button>
-                                <% } %>
-                            </td>
-                        </tr>
+                <h5 class="fw-bold text-primary mb-3">Buat Reservasi</h5>
+                <form action="/reservasi/add" method="POST">
+                    <input type="hidden" name="mhsId" value="<%= mhsId %>">
+                    <div class="mb-2">
+                        <label class="small fw-bold">Psikolog</label>
+                        <select name="psikologId" class="form-select" required>
+                            <% psikolog.forEach(p => { %>
+                                <option value="<%= p.id %>"><%= p.nama_psikolog %> (<%= p.jadwal_tugas %>)</option>
+                            <% }) %>
+                        </select>
+                    </div>
+                    <div class="mb-2"><input type="text" name="nim" class="form-control" placeholder="NIM" required></div>
+                    <div class="mb-2"><input type="text" name="nama" class="form-control" placeholder="Nama" required></div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6"><input type="date" name="tanggal" class="form-control" required></div>
+                        <div class="col-6"><input type="time" name="waktu" class="form-control" required></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Kirim Pengajuan</button>
+                </form>
+            </div>
+        </div>
 
-                        <div class="modal fade" id="modalEdit<%= r.id %>" tabindex="-1">
-                            <div class="modal-dialog">
-                                <form action="/reservasi/update" method="POST" class="modal-content">
-                                    <div class="modal-header"><h5>Ubah Jadwal</h5></div>
-                                    <div class="modal-body">
-                                        <input type="hidden" name="resId" value="<%= r.id %>">
-                                        <input type="hidden" name="mhsId" value="<%= mhsId %>">
-                                        
-                                        <label class="small fw-bold">Pilih Psikolog</label>
-                                        <select name="psikologId" class="form-select mb-2" required>
-                                            <% psikolog.forEach(p => { %>
-                                                <option value="<%= p.id %>" <%= r.psikolog_id == p.id ? 'selected' : '' %>>
-                                                    <%= p.nama_psikolog %>
-                                                </option>
-                                            <% }) %>
-                                        </select>
-
-                                        <label class="small fw-bold">Tanggal</label>
-                                        <input type="date" name="tanggal" class="form-control mb-2" 
-                                               value="<%= r.tanggal.toISOString().split('T')[0] %>" required>
-
-                                        <label class="small fw-bold">Jam</label>
-                                        <input type="time" name="waktu" class="form-control mb-2" 
-                                               value="<%= r.waktu %>" required>
+        <div class="col-md-8">
+            <div class="card p-4 shadow-sm border-0">
+                <h5 class="fw-bold text-primary mb-3">Status Reservasi Saya</h5>
+                <div class="table-responsive">
+                    <table class="table align-middle">
+                        <thead>
+                            <tr>
+                                <th>Jadwal</th>
+                                <th>Status</th>
+                                <th>Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% reservasi.forEach(r => { %>
+                            <tr class="<%= r.status === 'ditolak' ? 'table-danger' : '' %>">
+                                <td>
+                                    <span class="fw-bold"><%= r.tanggal.toLocaleDateString('id-ID') %></span><br>
+                                    <small class="text-muted"><%= r.waktu %></small>
+                                </td>
+                                <td>
+                                    <% if(r.status === 'ditolak') { %>
+                                        <span class="badge bg-danger">Ditolak</span>
+                                        <div class="small mt-1">Alasan: <%= r.pesan_tolak %></div>
+                                    <% } else { %>
+                                        <span class="badge <%= r.status === 'menunggu' ? 'bg-warning' : 'bg-success' %> text-dark">
+                                            <%= r.status %>
+                                        </span>
+                                    <% } %>
+                                </td>
+                                <td>
+                                    <div class="d-flex gap-1">
+                                        <% if(r.status !== 'dikonfirmasi') { %>
+                                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editModal<%= r.id %>">Edit</button>
+                                        <% } %>
+                                        <a href="/reservasi/delete/<%= r.id %>/<%= mhsId %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus?')">Hapus</a>
                                     </div>
-                                    <div class="modal-footer">
-                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+
+                                    <div class="modal fade" id="editModal<%= r.id %>" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <form action="/reservasi/update" method="POST" class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title fw-bold">Ubah Jadwal</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <input type="hidden" name="resId" value="<%= r.id %>">
+                                                    <input type="hidden" name="mhsId" value="<%= mhsId %>">
+                                                    
+                                                    <div class="mb-3 text-start">
+                                                        <label class="small fw-bold">Pilih Psikolog</label>
+                                                        <select name="psikologId" class="form-select" required>
+                                                            <% psikolog.forEach(p => { %>
+                                                                <option value="<%= p.id %>" <%= r.psikolog_id == p.id ? 'selected' : '' %>>
+                                                                    <%= p.nama_psikolog %> (<%= p.jadwal_tugas %>)
+                                                                </option>
+                                                            <% }) %>
+                                                        </select>
+                                                    </div>
+
+                                                    <div class="row g-2 text-start">
+                                                        <div class="col-6">
+                                                            <label class="small fw-bold">Tanggal Baru</label>
+                                                            <input type="date" name="tanggal" class="form-control" 
+                                                                   value="<%= r.tanggal.toISOString().split('T')[0] %>" required>
+                                                        </div>
+                                                        <div class="col-6">
+                                                            <label class="small fw-bold">Jam Baru</label>
+                                                            <input type="time" name="waktu" class="form-control" 
+                                                                   value="<%= r.waktu %>" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                                                    <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                                </div>
+                                            </form>
+                                        </div>
                                     </div>
-                                </form>
-                            </div>
-                        </div>
-                        <% }) %>
-                    </tbody>
-                </table>
+                                </td>
+                            </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
