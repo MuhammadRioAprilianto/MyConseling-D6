@@ -2,18 +2,17 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 
-// Middleware Proteksi Halaman
 const auth = (role) => {
     return (req, res, next) => {
         if (req.session.user && req.session.user.role === role) {
             next();
         } else {
-            res.send("<script>alert('Akses Ditolak! Silakan Login Kembali.'); window.location='/';</script>");
+            res.send("<script>alert('Akses Ditolak!'); window.location='/';</script>");
         }
     };
 };
 
-// --- AUTH ROUTES ---
+// --- AUTH & LOGIN ---
 router.get('/', (req, res) => res.render('login'));
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
@@ -27,79 +26,45 @@ router.post('/login', async (req, res) => {
                 if (u.role === 'psikolog') return res.redirect('/psikolog/' + u.id);
                 if (u.role === 'mahasiswa') return res.redirect('/mahasiswa/' + u.id);
             });
-        } else { res.send("<script>alert('Login Gagal!'); window.location='/';</script>"); }
+        } else { res.send("<script>alert('Gagal!'); window.location='/';</script>"); }
     } catch (err) { res.status(500).send("Error Login"); }
 });
 
-// --- ADMIN DASHBOARD (SOLUSI: Cannot GET /admin/:id) ---
-router.get('/admin/:id', auth('admin'), async (req, res) => {
+// --- MAHASISWA (FIX: booked variable) ---
+router.get('/mahasiswa/:id', auth('mahasiswa'), async (req, res) => {
     try {
-        // Ambil data psikolog gabungan dari tabel users dan psikolog_status
-        const [dataPsikolog] = await db.query(`
-            SELECT ps.*, u.username, u.password 
-            FROM psikolog_status ps 
-            JOIN users u ON ps.id = u.id
-        `);
-        // Ambil data mahasiswa
-        const [dataMahasiswa] = await db.query("SELECT * FROM users WHERE role = 'mahasiswa'");
-        // Hitung total reservasi untuk statistik
-        const [totalRes] = await db.query('SELECT COUNT(*) as total FROM reservasi');
-
-        res.render('admin_dashboard', { 
-            psikolog: dataPsikolog, 
-            mahasiswa: dataMahasiswa, 
-            total: totalRes[0].total, 
-            adminId: req.params.id 
-        });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send("Error Load Admin Dashboard");
-    }
+        const [psikolog] = await db.query('SELECT * FROM psikolog_status WHERE is_active = 1');
+        const [reservasi] = await db.query('SELECT * FROM reservasi WHERE mahasiswa_id = ?', [req.params.id]);
+        // MENYEDIAKAN VARIABEL booked AGAR TIDAK ERROR
+        const [booked] = await db.query('SELECT tanggal, waktu, psikolog_id FROM reservasi WHERE status != "ditolak"');
+        res.render('mahasiswa_dashboard', { psikolog, reservasi, mhsId: req.params.id, booked });
+    } catch (err) { res.status(500).send("Error Load Dashboard"); }
 });
 
-// --- ADMIN: TAMBAH PSIKOLOG ---
-router.post('/admin/psikolog/add', auth('admin'), async (req, res) => {
-    const { nama, hari_mulai, hari_sampai, jam_mulai, jam_selesai, username, password, adminId } = req.body;
-    const jadwal = `${hari_mulai} - ${hari_sampai}, ${jam_mulai} - ${jam_selesai}`;
+// --- UPDATE RESERVASI (FIX: Error Update Gagal) ---
+router.post('/reservasi/update', auth('mahasiswa'), async (req, res) => {
+    const { resId, mhsId, psikologId, tanggal, waktu } = req.body;
     try {
-        // 1. Simpan ke tabel users
-        const [result] = await db.query('INSERT INTO users (username, password, role) VALUES (?, ?, "psikolog")', [username, password]);
-        // 2. Simpan ke tabel psikolog_status menggunakan ID yang baru dibuat
-        await db.query('INSERT INTO psikolog_status (id, nama_psikolog, jadwal_tugas, is_active) VALUES (?, ?, ?, 1)', [result.insertId, nama, jadwal]);
-        
-        res.redirect('/admin/' + adminId);
-    } catch (err) { res.send("<script>alert('Gagal Tambah Psikolog!'); window.history.back();</script>"); }
+        await db.query(
+            'UPDATE reservasi SET psikolog_id=?, tanggal=?, waktu=?, status="menunggu" WHERE id=?', 
+            [psikologId, tanggal, waktu, resId]
+        );
+        res.redirect(`/mahasiswa/${mhsId}`);
+    } catch (err) { res.status(500).send("Terjadi kesalahan sistem saat update."); }
 });
 
-// --- ADMIN: TAMBAH MAHASISWA ---
-router.post('/admin/mahasiswa/add', auth('admin'), async (req, res) => {
-    const { username, password, adminId } = req.body;
-    try {
-        await db.query('INSERT INTO users (username, password, role) VALUES (?, ?, "mahasiswa")', [username, password]);
-        res.redirect('/admin/' + adminId);
-    } catch (err) { res.send("<script>alert('Gagal Tambah Mahasiswa!'); window.history.back();</script>"); }
+// --- PSIKOLOG (FIX: Cannot GET/POST routes) ---
+router.get('/psikolog/:id', auth('psikolog'), async (req, res) => {
+    const [daftar] = await db.query('SELECT * FROM reservasi WHERE psikolog_id = ?', [req.params.id]);
+    res.render('psikolog_dashboard', { daftar, psiId: req.params.id });
 });
 
-// --- ADMIN: UPDATE USER ---
-router.post('/admin/user/update', auth('admin'), async (req, res) => {
-    const { userId, username, password, nama, jadwal, role, adminId } = req.body;
+router.post('/psikolog/update-status', auth('psikolog'), async (req, res) => {
+    const { resId, status, psiId } = req.body;
     try {
-        await db.query('UPDATE users SET username=?, password=? WHERE id=?', [username, password, userId]);
-        if (role === 'psikolog') {
-            await db.query('UPDATE psikolog_status SET nama_psikolog=?, jadwal_tugas=? WHERE id=?', [nama, jadwal, userId]);
-        }
-        res.redirect('/admin/' + adminId);
-    } catch (err) { res.send("<script>alert('Update Gagal!'); window.history.back();</script>"); }
-});
-
-// --- ADMIN: DELETE USER ---
-router.get('/admin/user/delete/:userId/:adminId', auth('admin'), async (req, res) => {
-    try {
-        const { userId, adminId } = req.params;
-        // Karena kita pakai ON DELETE CASCADE di database, hapus di tabel users otomatis menghapus di psikolog_status
-        await db.query('DELETE FROM users WHERE id = ?', [userId]); 
-        res.redirect('/admin/' + adminId);
-    } catch (err) { res.send("<script>alert('Gagal Hapus!'); window.history.back();</script>"); }
+        await db.query('UPDATE reservasi SET status = ? WHERE id = ?', [status, resId]);
+        res.redirect(`/psikolog/${psiId}`);
+    } catch (err) { res.status(500).send("Gagal Update Status"); }
 });
 
 router.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
