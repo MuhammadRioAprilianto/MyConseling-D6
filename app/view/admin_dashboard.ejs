@@ -2,14 +2,14 @@
 
 <div class="row mb-4">
     <div class="col-12">
-        <h2 class="fw-bold text-primary">Admin Control Panel</h2>
-        <p class="text-muted">Total Reservasi: <span class="badge bg-primary"><%= total %></span></p>
+        <h2 class="fw-bold text-primary">Admin Control Panel 🔐</h2>
+        <p class="text-muted">Total Antrean Konseling: <span class="badge bg-primary fs-6"><%= total %></span></p>
     </div>
 </div>
 
 <div class="row">
     <div class="col-md-6 mb-4">
-        <div class="card shadow-sm h-100">
+        <div class="card shadow-sm h-100 border-0">
             <div class="card-body p-4">
                 <h5 class="fw-bold mb-3">Pendaftaran Psikolog</h5>
                 <form action="/admin/psikolog/add" method="POST">
@@ -19,14 +19,14 @@
                     </div>
                     <div class="row g-2 mb-3">
                         <div class="col-6">
-                            <label class="form-label small fw-bold">Hari</label>
+                            <label class="form-label small fw-bold">Hari Praktek</label>
                             <select name="hari" class="form-select">
                                 <option value="Senin - Jumat">Senin - Jumat</option>
                                 <option value="Sabtu - Minggu">Sabtu - Minggu</option>
                             </select>
                         </div>
                         <div class="col-3">
-                            <label class="form-label small fw-bold">Mulai</label>
+                            <label class="form-label small fw-bold">Jam Mulai</label>
                             <input type="time" name="jam_mulai" class="form-control" required>
                         </div>
                         <div class="col-3">
@@ -35,77 +35,102 @@
                         </div>
                     </div>
                     <div class="bg-light p-3 rounded mb-3 border">
-                        <label class="d-block mb-2 small fw-bold text-secondary">KREDENSIAL LOGIN</label>
+                        <label class="d-block mb-2 small fw-bold text-secondary text-uppercase">Akun Login</label>
                         <div class="row g-2">
                             <div class="col-6"><input type="text" name="username" class="form-control" placeholder="Username" required></div>
                             <div class="col-6"><input type="password" name="password" class="form-control" placeholder="Password" required></div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary w-100 fw-bold">Daftarkan Psikolog</button>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm">Simpan Psikolog</button>
                 </form>
             </div>
         </div>
     </div>
 
     <div class="col-md-6 mb-4">
-        <div class="card shadow-sm h-100">
+        <div class="card shadow-sm h-100 border-0">
             <div class="card-body p-4">
-                <h5 class="fw-bold mb-3">Pendaftaran Mahasiswa</h5>
+                <h5 class="fw-bold mb-3 text-success">Pendaftaran Mahasiswa</h5>
                 <form action="/admin/mahasiswa/add" method="POST">
                     <div class="mb-3">
-                        <label class="form-label small fw-bold">Nama Lengkap</label>
-                        <input type="text" name="nama" class="form-control" placeholder="Nama Mahasiswa" required>
-                    </div>
-                    <div class="row g-2 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">NIM</label>
-                            <input type="text" name="nim" class="form-control" placeholder="NIM" required>
-                        </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold">Jurusan</label>
-                            <select name="jurusan" class="form-select">
-                                <option value="Teknik Informatika">Teknik Informatika</option>
-                                <option value="Sistem Informasi">Sistem Informasi</option>
-                                <option value="Manajemen">Manajemen</option>
-                                <option value="Hukum">Hukum</option>
-                            </select>
-                        </div>
+                        <label class="form-label small fw-bold">Nama & NIM (Opsional Info)</label>
+                        <input type="text" class="form-control" placeholder="Hanya untuk catatan admin">
                     </div>
                     <div class="bg-light p-3 rounded mb-3 border">
-                        <label class="d-block mb-2 small fw-bold text-secondary">KREDENSIAL LOGIN</label>
+                        <label class="d-block mb-2 small fw-bold text-secondary text-uppercase">Akun Login Mahasiswa</label>
                         <div class="row g-2">
-                            <div class="col-6"><input type="text" name="username" class="form-control" placeholder="Username" required></div>
+                            <div class="col-6"><input type="text" name="username" class="form-control" placeholder="Username (NIM)" required></div>
                             <div class="col-6"><input type="password" name="password" class="form-control" placeholder="Password" required></div>
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-success w-100 fw-bold">Daftarkan Mahasiswa</button>
+                    <button type="submit" class="btn btn-success w-100 fw-bold shadow-sm">Simpan Mahasiswa</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
 
-<div class="card shadow-sm border-0">
-    <div class="card-body">
-        <h5 class="fw-bold mb-3">Daftar Pengguna Sistem</h5>
-        <table class="table table-hover align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Username</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% users.forEach(u => { %>
-                    <tr>
-                        <td class="fw-bold"><%= u.username %></td>
-                        <td><span class="badge <%= u.role == 'psikolog' ? 'bg-info' : 'bg-secondary' %>"><%= u.role %></span></td>
-                        <td><span class="text-success small">● Aktif</span></td>
-                    </tr>
-                <% }) %>
-            </tbody>
-        </table>
+<hr class="my-5">
+
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0 text-primary">👨‍⚕️ Daftar Psikolog Terdaftar</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Nama Psikolog</th>
+                            <th>Username</th>
+                            <th>Jadwal Tugas</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% psikolog.forEach(p => { %>
+                            <tr>
+                                <td class="ps-4 fw-bold"><%= p.nama_psikolog %></td>
+                                <td><span class="badge bg-info text-dark">@<%= p.username %></span></td>
+                                <td><%= p.jadwal_tugas %></td>
+                                <td><span class="text-success small">● Aktif</span></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mb-5">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-white py-3">
+                <h5 class="fw-bold mb-0 text-success">🎓 Daftar Mahasiswa Terdaftar</h5>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID Mahasiswa</th>
+                            <th>Username (NIM)</th>
+                            <th>Status Akses</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% mahasiswa.forEach(m => { %>
+                            <tr>
+                                <td class="ps-4 text-muted">#<%= m.id %></td>
+                                <td class="fw-bold"><%= m.username %></td>
+                                <td><span class="badge bg-light text-success border">Diberikan Akses</span></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 

@@ -28,7 +28,7 @@ router.post('/login', async (req, res) => {
             if (u.role === 'psikolog') return res.redirect('/psikolog/' + u.id);
             if (u.role === 'mahasiswa') return res.redirect('/mahasiswa/' + u.id);
         } else {
-            res.send("<script>alert('Gagal!'); window.location='/';</script>");
+            res.send("<script>alert('Gagal Login!'); window.location='/';</script>");
         }
     } catch (err) { res.status(500).send("Error"); }
 });
@@ -38,7 +38,7 @@ router.get('/logout', (req, res) => {
     res.redirect('/');
 });
 
-// --- MAHASISWA ROUTES ---
+// --- MAHASISWA & PSIKOLOG DASHBOARD (LOGIKA SAMA SEPERTI SEBELUMNYA) ---
 router.get('/mahasiswa/:id', auth('mahasiswa'), async (req, res) => {
     const [psikolog] = await db.query('SELECT * FROM psikolog_status WHERE is_active = 1');
     const [reservasi] = await db.query('SELECT * FROM reservasi WHERE mahasiswa_id = ?', [req.params.id]);
@@ -46,32 +46,20 @@ router.get('/mahasiswa/:id', auth('mahasiswa'), async (req, res) => {
     res.render('mahasiswa_dashboard', { psikolog, reservasi, mhsId: req.params.id, booked });
 });
 
+router.get('/psikolog/:id', auth('psikolog'), async (req, res) => {
+    const [daftar] = await db.query('SELECT * FROM reservasi WHERE psikolog_id = ?', [req.params.id]);
+    res.render('psikolog_dashboard', { daftar, psiId: req.params.id });
+});
+
+// --- FITUR RESERVASI ---
 router.post('/reservasi/add', auth('mahasiswa'), async (req, res) => {
     try {
         const { mhsId, nim, nama, tanggal, waktu, psikologId } = req.body;
         const [cek] = await db.query('SELECT * FROM reservasi WHERE tanggal=? AND waktu=? AND psikolog_id=? AND status!="ditolak"', [tanggal, waktu, psikologId]);
         if (cek.length > 0) return res.send("<script>alert('Jadwal bentrok!'); window.history.back();</script>");
-        
         await db.query('INSERT INTO reservasi (mahasiswa_id, nama_mhs, nim, tanggal, waktu, psikolog_id) VALUES (?,?,?,?,?,?)', [mhsId, nama, nim, tanggal, waktu, psikologId]);
         res.redirect(`/mahasiswa/${mhsId}`);
     } catch (err) { res.status(500).send("Error"); }
-});
-
-router.post('/reservasi/update', auth('mahasiswa'), async (req, res) => {
-    try {
-        const { resId, mhsId, tanggal, waktu, psikologId } = req.body;
-        const [cek] = await db.query('SELECT * FROM reservasi WHERE tanggal=? AND waktu=? AND psikolog_id=? AND id!=? AND status!="ditolak"', [tanggal, waktu, psikologId, resId]);
-        if (cek.length > 0) return res.send("<script>alert('Jadwal bentrok!'); window.history.back();</script>");
-
-        await db.query('UPDATE reservasi SET tanggal=?, waktu=?, psikolog_id=?, status="menunggu" WHERE id=? AND mahasiswa_id=?', [tanggal, waktu, psikologId, resId, mhsId]);
-        res.redirect(`/mahasiswa/${mhsId}`);
-    } catch (err) { res.status(500).send("Error"); }
-});
-
-// --- PSIKOLOG ROUTES ---
-router.get('/psikolog/:id', auth('psikolog'), async (req, res) => {
-    const [daftar] = await db.query('SELECT * FROM reservasi WHERE psikolog_id = ?', [req.params.id]);
-    res.render('psikolog_dashboard', { daftar, psiId: req.params.id });
 });
 
 router.post('/psikolog/update-status', auth('psikolog'), async (req, res) => {
@@ -81,17 +69,35 @@ router.post('/psikolog/update-status', auth('psikolog'), async (req, res) => {
     res.redirect(`/psikolog/${psiId}`);
 });
 
-// --- ADMIN ROUTES (MODUL BARU) ---
+// --- ADMIN ROUTES (TABEL TERPISAH) ---
 router.get('/admin/:id', auth('admin'), async (req, res) => {
     try {
-        const [psikolog] = await db.query('SELECT * FROM psikolog_status');
-        const [users] = await db.query('SELECT id, username, role FROM users WHERE role != "admin"');
+        // Ambil data Psikolog (Join dengan users untuk ambil username)
+        const [dataPsikolog] = await db.query(`
+            SELECT ps.nama_psikolog, ps.jadwal_tugas, u.username, u.id 
+            FROM psikolog_status ps 
+            JOIN users u ON ps.id = u.id 
+            WHERE u.role = 'psikolog'
+        `);
+
+        // Ambil data Mahasiswa dari tabel users
+        const [dataMahasiswa] = await db.query("SELECT id, username FROM users WHERE role = 'mahasiswa'");
+
         const [totalRes] = await db.query('SELECT COUNT(*) as total FROM reservasi');
-        res.render('admin_dashboard', { psikolog, users, total: totalRes[0].total, adminId: req.params.id });
-    } catch (err) { res.status(500).send("Admin Error"); }
+
+        res.render('admin_dashboard', { 
+            psikolog: dataPsikolog, 
+            mahasiswa: dataMahasiswa, 
+            total: totalRes[0].total, 
+            adminId: req.params.id 
+        });
+    } catch (err) { 
+        console.error(err);
+        res.status(500).send("Admin Error"); 
+    }
 });
 
-// Tambah Psikolog & Akun Otomatis
+// Aksi Tambah Psikolog
 router.post('/admin/psikolog/add', auth('admin'), async (req, res) => {
     const { nama, hari, jam_mulai, jam_selesai, username, password } = req.body;
     const jadwal = `${hari}, ${jam_mulai} - ${jam_selesai}`;
@@ -102,7 +108,7 @@ router.post('/admin/psikolog/add', auth('admin'), async (req, res) => {
     } catch (err) { res.send("<script>alert('Gagal! Username mungkin sudah ada.'); window.history.back();</script>"); }
 });
 
-// Tambah Mahasiswa & Akun Otomatis
+// Aksi Tambah Mahasiswa
 router.post('/admin/mahasiswa/add', auth('admin'), async (req, res) => {
     const { username, password } = req.body;
     try {
