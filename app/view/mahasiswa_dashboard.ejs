@@ -2,6 +2,21 @@
 
 <div class="row">
     <div class="col-md-4">
+        <div class="card border-danger mb-3 shadow-sm">
+            <div class="card-header bg-danger text-white small fw-bold">Jadwal Tidak Tersedia</div>
+            <div class="card-body p-2" style="max-height: 150px; overflow-y: auto;">
+                <% if(booked.length > 0) { %>
+                    <% booked.forEach(b => { %>
+                        <div class="border-bottom py-1 small text-danger">
+                             🚫 <%= b.tanggal.toLocaleDateString('id-ID') %> | <%= b.waktu %> (Psi ID: <%= b.psikolog_id %>)
+                        </div>
+                    <% }) %>
+                <% } else { %>
+                    <p class="small text-muted mb-0">Semua jadwal masih tersedia.</p>
+                <% } %>
+            </div>
+        </div>
+
         <div class="card shadow-sm border-0 mb-4">
             <div class="card-body p-4">
                 <h5 class="fw-bold text-primary mb-4">Form Konseling</h5>
@@ -86,7 +101,7 @@
                                                         <input type="hidden" name="resId" value="<%= r.id %>">
                                                         <input type="hidden" name="mhsId" value="<%= mhsId %>">
                                                         <div class="mb-3">
-                                                            <label class="form-label small fw-bold">Pilih Psikolog Baru</label>
+                                                            <label class="form-label small fw-bold">Psikolog</label>
                                                             <select name="psikologId" class="form-select" required>
                                                                 <% psikolog.forEach(p => { %>
                                                                     <option value="<%= p.id %>" <%= r.psikolog_id == p.id ? 'selected' : '' %>><%= p.nama_psikolog %></option>
@@ -94,11 +109,11 @@
                                                             </select>
                                                         </div>
                                                         <div class="mb-3">
-                                                            <label class="form-label small fw-bold">Tanggal Baru</label>
+                                                            <label class="form-label small fw-bold">Tanggal</label>
                                                             <input type="date" name="tanggal" class="form-control" value="<%= r.tanggal.toISOString().split('T')[0] %>" required>
                                                         </div>
                                                         <div class="mb-3">
-                                                            <label class="form-label small fw-bold">Waktu Baru</label>
+                                                            <label class="form-label small fw-bold">Waktu</label>
                                                             <input type="time" name="waktu" class="form-control" value="<%= r.waktu %>" required>
                                                         </div>
                                                     </div>

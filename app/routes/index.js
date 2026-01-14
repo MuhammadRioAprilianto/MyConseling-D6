@@ -3,7 +3,6 @@ const express = require('express');
 const router = express.Router();
 const db = require('../config/database');
 
-// Middleware Auth
 const auth = (role) => {
     return (req, res, next) => {
         if (req.session.user && req.session.user.role === role) {
@@ -16,7 +15,6 @@ const auth = (role) => {
 
 // --- AUTH ---
 router.get('/', (req, res) => res.render('login'));
-
 router.post('/login', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -27,37 +25,53 @@ router.post('/login', async (req, res) => {
             if (u.role === 'admin') return res.redirect('/admin/' + u.id);
             if (u.role === 'psikolog') return res.redirect('/psikolog/' + u.id);
             if (u.role === 'mahasiswa') return res.redirect('/mahasiswa/' + u.id);
-        } else {
-            res.send("<script>alert('Gagal!'); window.location='/';</script>");
-        }
+        } else { res.send("<script>alert('Gagal!'); window.location='/';</script>"); }
     } catch (err) { res.status(500).send("Error"); }
 });
+router.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
 
-router.get('/logout', (req, res) => {
-    req.session.destroy();
-    res.redirect('/');
-});
-
-// --- MAHASISWA (CREATE, READ, DELETE, UPDATE) ---
+// --- MAHASISWA (DENGAN VALIDASI JADWAL) ---
 router.get('/mahasiswa/:id', auth('mahasiswa'), async (req, res) => {
     const [psikolog] = await db.query('SELECT * FROM psikolog_status WHERE is_active = 1');
     const [reservasi] = await db.query('SELECT * FROM reservasi WHERE mahasiswa_id = ?', [req.params.id]);
-    res.render('mahasiswa_dashboard', { psikolog, reservasi, mhsId: req.params.id });
+    // Tambahan: Ambil jadwal yang sudah terisi untuk info mahasiswa
+    const [booked] = await db.query('SELECT tanggal, waktu, psikolog_id FROM reservasi WHERE status != "ditolak"');
+    res.render('mahasiswa_dashboard', { psikolog, reservasi, mhsId: req.params.id, booked });
 });
 
 router.post('/reservasi/add', auth('mahasiswa'), async (req, res) => {
     try {
         const { mhsId, nim, nama, tanggal, waktu, psikologId } = req.body;
+
+        // VALIDASI JADWAL BENTROK
+        const [cek] = await db.query(
+            'SELECT * FROM reservasi WHERE tanggal = ? AND waktu = ? AND psikolog_id = ? AND status != "ditolak"',
+            [tanggal, waktu, psikologId]
+        );
+
+        if (cek.length > 0) {
+            return res.send("<script>alert('Maaf, jadwal psikolog tersebut di jam tersebut sudah terisi. Silakan pilih waktu lain.'); window.history.back();</script>");
+        }
+
         await db.query('INSERT INTO reservasi (mahasiswa_id, nama_mhs, nim, tanggal, waktu, psikolog_id) VALUES (?,?,?,?,?,?)', [mhsId, nama, nim, tanggal, waktu, psikologId]);
         res.redirect(`/mahasiswa/${mhsId}`);
-    } catch (err) { res.status(500).send("Error 502 Protection"); }
+    } catch (err) { res.status(500).send("Error System"); }
 });
 
-// FITUR BARU: Update Reservasi
 router.post('/reservasi/update', auth('mahasiswa'), async (req, res) => {
     try {
         const { resId, mhsId, tanggal, waktu, psikologId } = req.body;
-        // Status kembali ke 'menunggu' agar psikolog bisa memvalidasi ulang
+
+        // VALIDASI JADWAL BENTROK (Kecuali ID reservasi ini sendiri)
+        const [cek] = await db.query(
+            'SELECT * FROM reservasi WHERE tanggal = ? AND waktu = ? AND psikolog_id = ? AND id != ? AND status != "ditolak"',
+            [tanggal, waktu, psikologId, resId]
+        );
+
+        if (cek.length > 0) {
+            return res.send("<script>alert('Jadwal baru yang Anda pilih sudah terisi!'); window.history.back();</script>");
+        }
+
         await db.query(
             'UPDATE reservasi SET tanggal = ?, waktu = ?, psikolog_id = ?, status = "menunggu" WHERE id = ? AND mahasiswa_id = ?',
             [tanggal, waktu, psikologId, resId, mhsId]
@@ -73,7 +87,6 @@ router.get('/reservasi/delete/:id/:mhsId', auth('mahasiswa'), async (req, res) =
 
 // --- PSIKOLOG ---
 router.get('/psikolog/:id', auth('psikolog'), async (req, res) => {
-    // Menampilkan semua reservasi yang ditujukan ke psikolog ini
     const [daftar] = await db.query('SELECT * FROM reservasi WHERE psikolog_id = ?', [req.params.id]);
     res.render('psikolog_dashboard', { daftar, psiId: req.params.id });
 });
