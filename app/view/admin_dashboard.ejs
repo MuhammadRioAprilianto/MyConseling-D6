@@ -1,55 +1,174 @@
 <%- include('partials/header') %>
-<div class="container">
-    <h2 class="fw-bold text-primary mb-4">Admin Control</h2>
-    <div class="row mb-5">
-        <div class="col-md-6">
-            <div class="card p-4 shadow-sm h-100">
-                <h5 class="fw-bold">Tambah Psikolog</h5>
+
+<div class="row mb-4">
+    <div class="col-12 d-flex justify-content-between align-items-center">
+        <h2 class="fw-bold text-primary">Admin Control Panel 🔐</h2>
+        <h4 class="text-muted">Total Reservasi: <span class="badge bg-primary shadow-sm"><%= total %></span></h4>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-7 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4 text-primary">Daftarkan Psikolog Baru</h5>
                 <form action="/admin/psikolog/add" method="POST">
-                    <input type="text" name="nama" class="form-control mb-2" placeholder="Nama" required>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6"><select name="hari_mulai" class="form-select"><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option></select></div>
-                        <div class="col-6"><select name="hari_sampai" class="form-select"><option>Senin</option><option>Selasa</option><option>Rabu</option><option>Kamis</option><option>Jumat</option></select></div>
+                    <div class="mb-3">
+                        <label class="small fw-bold">Nama Lengkap</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Nama Psikolog" required>
                     </div>
-                    <div class="row g-2 mb-2">
-                        <div class="col-6"><input type="time" name="jam_mulai" class="form-control" required></div>
-                        <div class="col-6"><input type="time" name="jam_selesai" class="form-control" required></div>
+                    
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-3">
+                            <label class="small fw-bold">Hari Mulai</label>
+                            <select name="hari_mulai" class="form-select">
+                                <option>Senin</option><option>Selasa</option><option>Rabu</option>
+                                <option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold">Hari Sampai</label>
+                            <select name="hari_sampai" class="form-select">
+                                <option>Senin</option><option>Selasa</option><option>Rabu</option>
+                                <option>Kamis</option><option>Jumat</option><option>Sabtu</option><option>Minggu</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold">Jam Mulai</label>
+                            <input type="time" name="jam_mulai" class="form-control" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="small fw-bold">Selesai</label>
+                            <input type="time" name="jam_selesai" class="form-control" required>
+                        </div>
                     </div>
-                    <input type="text" name="username" class="form-control mb-2" placeholder="User" required>
-                    <input type="password" name="password" class="form-control mb-3" placeholder="Pass" required>
-                    <button type="submit" class="btn btn-primary w-100">Simpan</button>
-                </form>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="card p-4 shadow-sm h-100">
-                <h5 class="fw-bold">Tambah Mahasiswa</h5>
-                <form action="/admin/mahasiswa/add" method="POST">
-                    <input type="text" name="username" class="form-control mb-2" placeholder="User (NIM)" required>
-                    <input type="password" name="password" class="form-control mb-3" placeholder="Pass" required>
-                    <button type="submit" class="btn btn-success w-100">Simpan</button>
+
+                    <div class="bg-light p-3 rounded mb-3 border">
+                        <label class="d-block mb-2 small fw-bold text-secondary text-uppercase">Informasi Akun Login</label>
+                        <div class="row g-2">
+                            <div class="col-6"><input type="text" name="username" class="form-control" placeholder="Username" required></div>
+                            <div class="col-6"><input type="password" name="password" class="form-control" placeholder="Password" required></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Simpan Psikolog</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-primary text-white fw-bold">Data Psikolog</div>
-        <table class="table">
-            <thead><tr><th>Nama</th><th>Jadwal</th><th>Username</th><th>Aksi</th></tr></thead>
+    <div class="col-md-5 mb-4">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-4 text-success">Daftarkan Mahasiswa Baru</h5>
+                <form action="/admin/mahasiswa/add" method="POST">
+                    <div class="bg-light p-3 rounded mb-3 border">
+                        <label class="d-block mb-2 small fw-bold text-secondary text-uppercase">Akun Login Mahasiswa</label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-12"><input type="text" name="username" class="form-control" placeholder="Username (NIM)" required></div>
+                        </div>
+                        <div class="row g-2">
+                            <div class="col-12"><input type="password" name="password" class="form-control" placeholder="Password" required></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">Simpan Mahasiswa</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<hr class="my-5">
+
+<div class="card shadow-sm border-0 mb-5">
+    <div class="card-header bg-primary text-white fw-bold py-3">Daftar Psikolog Terdaftar</div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">Nama</th>
+                    <th>Jadwal Tugas</th>
+                    <th>Username</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
             <tbody>
                 <% psikolog.forEach(p => { %>
                     <tr>
-                        <td><%= p.nama_psikolog %></td>
-                        <td><%= p.jadwal_tugas %></td>
-                        <td><%= p.username %></td>
+                        <td class="ps-4 fw-bold"><%= p.nama_psikolog %></td>
+                        <td><span class="badge bg-light text-dark border"><%= p.jadwal_tugas %></span></td>
+                        <td><code><%= p.username %></code></td>
                         <td>
-                            <a href="/admin/user/delete/<%= p.id %>/<%= adminId %>" class="btn btn-sm btn-danger">Hapus</a>
+                            <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editPsi<%= p.id %>">Edit</button>
+                            <a href="/admin/user/delete/<%= p.id %>/<%= adminId %>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus Psikolog?')">Hapus</a>
                         </td>
                     </tr>
+                    <div class="modal fade" id="editPsi<%= p.id %>" tabindex="-1">
+                        <div class="modal-dialog">
+                            <form action="/admin/user/update" method="POST" class="modal-content">
+                                <div class="modal-header"><h5>Edit Data Psikolog</h5></div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="userId" value="<%= p.id %>">
+                                    <input type="hidden" name="adminId" value="<%= adminId %>">
+                                    <input type="hidden" name="role" value="psikolog">
+                                    <div class="mb-2"><label class="small fw-bold">Nama</label><input type="text" name="nama" class="form-control" value="<%= p.nama_psikolog %>"></div>
+                                    <div class="mb-2"><label class="small fw-bold">Jadwal (Manual Edit)</label><input type="text" name="jadwal" class="form-control" value="<%= p.jadwal_tugas %>"></div>
+                                    <div class="row g-2">
+                                        <div class="col-6"><label class="small fw-bold">User</label><input type="text" name="username" class="form-control" value="<%= p.username %>"></div>
+                                        <div class="col-6"><label class="small fw-bold">Pass</label><input type="password" name="password" class="form-control" value="<%= p.password %>"></div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer"><button type="submit" class="btn btn-primary">Update Data</button></div>
+                            </form>
+                        </div>
+                    </div>
                 <% }) %>
             </tbody>
         </table>
     </div>
 </div>
+
+<div class="card shadow-sm border-0 mb-5">
+    <div class="card-header bg-success text-white fw-bold py-3">Daftar Mahasiswa Terdaftar</div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-4">ID</th>
+                    <th>Username (NIM)</th>
+                    <th>Password</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% mahasiswa.forEach(m => { %>
+                    <tr>
+                        <td class="ps-4 text-muted">#<%= m.id %></td>
+                        <td class="fw-bold"><%= m.username %></td>
+                        <td><code><%= m.password %></code></td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-warning" data-bs-toggle="modal" data-bs-target="#editMhs<%= m.id %>">Edit</button>
+                            <a href="/admin/user/delete/<%= m.id %>/<%= adminId %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus Akun Mahasiswa?')">Hapus</a>
+                        </td>
+                    </tr>
+                    <div class="modal fade" id="editMhs<%= m.id %>" tabindex="-1">
+                        <div class="modal-dialog">
+                            <form action="/admin/user/update" method="POST" class="modal-content">
+                                <div class="modal-header"><h5>Edit Akun Mahasiswa</h5></div>
+                                <div class="modal-body">
+                                    <input type="hidden" name="userId" value="<%= m.id %>">
+                                    <input type="hidden" name="adminId" value="<%= adminId %>">
+                                    <input type="hidden" name="role" value="mahasiswa">
+                                    <div class="mb-2"><label class="small fw-bold">NIM / Username</label><input type="text" name="username" class="form-control" value="<%= m.username %>"></div>
+                                    <div><label class="small fw-bold">Password Baru</label><input type="password" name="password" class="form-control" value="<%= m.password %>"></div>
+                                </div>
+                                <div class="modal-footer"><button type="submit" class="btn btn-success">Simpan Perubahan</button></div>
+                            </form>
+                        </div>
+                    </div>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <%- include('partials/footer') %>
