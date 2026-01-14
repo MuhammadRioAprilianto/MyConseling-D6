@@ -1,28 +1,112 @@
 <%- include('partials/header') %>
+
+<div class="row mb-4">
+    <div class="col-12">
+        <h2 class="fw-bold text-primary">Admin Control Panel</h2>
+        <p class="text-muted">Total Reservasi: <span class="badge bg-primary"><%= total %></span></p>
+    </div>
+</div>
+
 <div class="row">
-    <div class="col-md-4">
-        <div class="card p-3 shadow-sm border-0">
-            <h5>Tambah Psikolog</h5>
-            <form action="/admin/psikolog/add" method="POST">
-                <input type="text" name="nama" class="form-control mb-2" placeholder="Nama Psikolog" required>
-                <input type="text" name="jadwal" class="form-control mb-2" placeholder="Jadwal (ex: Senin 9-12)" required>
-                <button class="btn btn-primary w-100">Simpan</button>
-            </form>
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Pendaftaran Psikolog</h5>
+                <form action="/admin/psikolog/add" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nama Lengkap</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Nama Psikolog" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Hari</label>
+                            <select name="hari" class="form-select">
+                                <option value="Senin - Jumat">Senin - Jumat</option>
+                                <option value="Sabtu - Minggu">Sabtu - Minggu</option>
+                            </select>
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label small fw-bold">Mulai</label>
+                            <input type="time" name="jam_mulai" class="form-control" required>
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label small fw-bold">Selesai</label>
+                            <input type="time" name="jam_selesai" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="bg-light p-3 rounded mb-3 border">
+                        <label class="d-block mb-2 small fw-bold text-secondary">KREDENSIAL LOGIN</label>
+                        <div class="row g-2">
+                            <div class="col-6"><input type="text" name="username" class="form-control" placeholder="Username" required></div>
+                            <div class="col-6"><input type="password" name="password" class="form-control" placeholder="Password" required></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Daftarkan Psikolog</button>
+                </form>
+            </div>
         </div>
     </div>
-    <div class="col-md-8">
-        <div class="card p-3 shadow-sm border-0">
-            <h5>Daftar Psikolog & Jadwal</h5>
-            <table class="table mt-2">
-                <thead><tr><th>Nama</th><th>Jadwal</th><th>Status</th></tr></thead>
-                <tbody>
-                    <% psikolog.forEach(p => { %>
-                        <tr><td><%= p.nama_psikolog %></td><td><%= p.jadwal_tugas %></td>
-                        <td><span class="badge bg-success">Aktif</span></td></tr>
-                    <% }) %>
-                </tbody>
-            </table>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm h-100">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3">Pendaftaran Mahasiswa</h5>
+                <form action="/admin/mahasiswa/add" method="POST">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Nama Lengkap</label>
+                        <input type="text" name="nama" class="form-control" placeholder="Nama Mahasiswa" required>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">NIM</label>
+                            <input type="text" name="nim" class="form-control" placeholder="NIM" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold">Jurusan</label>
+                            <select name="jurusan" class="form-select">
+                                <option value="Teknik Informatika">Teknik Informatika</option>
+                                <option value="Sistem Informasi">Sistem Informasi</option>
+                                <option value="Manajemen">Manajemen</option>
+                                <option value="Hukum">Hukum</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="bg-light p-3 rounded mb-3 border">
+                        <label class="d-block mb-2 small fw-bold text-secondary">KREDENSIAL LOGIN</label>
+                        <div class="row g-2">
+                            <div class="col-6"><input type="text" name="username" class="form-control" placeholder="Username" required></div>
+                            <div class="col-6"><input type="password" name="password" class="form-control" placeholder="Password" required></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success w-100 fw-bold">Daftarkan Mahasiswa</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
+
+<div class="card shadow-sm border-0">
+    <div class="card-body">
+        <h5 class="fw-bold mb-3">Daftar Pengguna Sistem</h5>
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Username</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% users.forEach(u => { %>
+                    <tr>
+                        <td class="fw-bold"><%= u.username %></td>
+                        <td><span class="badge <%= u.role == 'psikolog' ? 'bg-info' : 'bg-secondary' %>"><%= u.role %></span></td>
+                        <td><span class="text-success small">● Aktif</span></td>
+                    </tr>
+                <% }) %>
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <%- include('partials/footer') %>
