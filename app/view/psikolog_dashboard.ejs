@@ -1,66 +1,85 @@
 <%- include('partials/header') %>
-<div class="container py-4">
-    <h3 class="fw-bold text-primary mb-4">Portal Psikolog</h3>
-    
-    <div class="card shadow-sm border-0 p-4">
-        <h5 class="fw-bold mb-3">Daftar Janji Temu Masuk</h5>
-        <div class="table-responsive">
-            <table class="table table-hover align-middle">
-                <thead>
-                    <tr>
-                        <th>Nama Mahasiswa (NIM)</th>
-                        <th>Jadwal Konsultasi</th>
-                        <th>Status</th>
-                        <th class="text-center">Aksi</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <% if(daftar.length > 0) { %>
-                        <% daftar.forEach(r => { %>
+
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="fw-bold text-primary mb-0">Panel Verifikasi Psikolog</h3>
+            <p class="text-muted">Kelola antrean dan konfirmasi jadwal mahasiswa</p>
+        </div>
+        <div class="text-end">
+            <span class="badge bg-dark px-3 py-2">ID PSIKOLOG: <%= psiId %></span>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4 py-3">Data Mahasiswa</th>
+                            <th>NIM</th>
+                            <th>Jadwal Konseling</th>
+                            <th>Status</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if(daftar.length > 0) { %>
+                            <% daftar.forEach(r => { %>
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark"><%= r.nama_mhs %></div>
+                                        <small class="text-muted">ID Reservasi: #<%= r.id %></small>
+                                    </td>
+                                    <td><span class="font-monospace"><%= r.nim %></span></td>
+                                    <td>
+                                        <div class="fw-bold"><%= r.tanggal.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></div>
+                                        <div class="badge bg-light text-dark border"><%= r.waktu %> WIB</div>
+                                    </td>
+                                    <td>
+                                        <% if(r.status === 'menunggu') { %>
+                                            <span class="badge rounded-pill bg-warning text-dark px-3">Menunggu</span>
+                                        <% } else { %>
+                                            <span class="badge rounded-pill bg-success px-3">Dikonfirmasi</span>
+                                        <% } %>
+                                    </td>
+                                    <td class="text-center">
+                                        <% if(r.status === 'menunggu') { %>
+                                            <form action="/psikolog/update-status" method="POST" class="d-inline-flex gap-2">
+                                                <input type="hidden" name="resId" value="<%= r.id %>">
+                                                <input type="hidden" name="psiId" value="<%= psiId %>">
+                                                
+                                                <button type="submit" name="status" value="dikonfirmasi" class="btn btn-sm btn-success px-3 fw-bold">
+                                                    Terima
+                                                </button>
+                                                
+                                                <button type="submit" name="status" value="ditolak" class="btn btn-sm btn-outline-danger px-3 fw-bold" 
+                                                        onclick="return confirm('Tolak dan hapus jadwal ini?')">
+                                                    Tolak
+                                                </button>
+                                            </form>
+                                        <% } else { %>
+                                            <button class="btn btn-sm btn-secondary px-4" disabled>Sudah Beres</button>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
                             <tr>
-                                <td>
-                                    <div class="fw-bold"><%= r.nama_mhs %></div>
-                                    <div class="small text-muted"><%= r.nim %></div>
-                                </td>
-                                <td>
-                                    <div><%= r.tanggal.toLocaleDateString('id-ID') %></div>
-                                    <div class="small fw-bold"><%= r.waktu %></div>
-                                </td>
-                                <td>
-                                    <span class="badge <%= r.status == 'menunggu' ? 'bg-warning text-dark' : 'bg-success' %>">
-                                        <%= r.status %>
-                                    </span>
-                                </td>
-                                <td class="text-center">
-                                    <% if(r.status == 'menunggu') { %>
-                                        <div class="d-flex justify-content-center gap-2">
-                                            <form action="/psikolog/update-status" method="POST">
-                                                <input type="hidden" name="resId" value="<%= r.id %>">
-                                                <input type="hidden" name="psiId" value="<%= psiId %>">
-                                                <input type="hidden" name="status" value="dikonfirmasi">
-                                                <button type="submit" class="btn btn-sm btn-success">Konfirmasi</button>
-                                            </form>
-                                            <form action="/psikolog/update-status" method="POST">
-                                                <input type="hidden" name="resId" value="<%= r.id %>">
-                                                <input type="hidden" name="psiId" value="<%= psiId %>">
-                                                <input type="hidden" name="status" value="ditolak">
-                                                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Tolak dan hapus reservasi ini?')">Tolak</button>
-                                            </form>
-                                        </div>
-                                    <% } else { %>
-                                        <button class="btn btn-sm btn-light disabled">Selesai</button>
-                                    <% } %>
+                                <td colspan="5" class="text-center py-5">
+                                    <div class="py-4">
+                                        <h1 class="display-6 text-muted">☕</h1>
+                                        <p class="text-muted">Tidak ada antrean pendaftaran untuk saat ini.</p>
+                                    </div>
                                 </td>
                             </tr>
-                        <% }) %>
-                    <% } else { %>
-                        <tr>
-                            <td colspan="4" class="text-center py-4 text-muted">Belum ada permintaan konsultasi.</td>
-                        </tr>
-                    <% } %>
-                </tbody>
-            </table>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
+
 <%- include('partials/footer') %>
