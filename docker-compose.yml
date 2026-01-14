@@ -1,4 +1,5 @@
 version: "3.8"
+
 services:
   db_service:
     image: mysql:8.0
@@ -10,7 +11,11 @@ services:
       MYSQL_PASSWORD: ${DB_PASS}
       MYSQL_ROOT_PASSWORD: rootpassword
     volumes:
+      # Volume untuk inisialisasi awal database
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql
+      # Volume untuk menyimpan data secara PERMANEN di laptop/Raspberry Pi
+      # Ini memastikan data tidak hilang saat laptop dimatikan
+      - ./mysql_data:/var/lib/mysql 
     networks:
       - conseling_net
 
