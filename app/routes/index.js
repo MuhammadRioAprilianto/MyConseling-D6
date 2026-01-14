@@ -31,7 +31,7 @@ router.post('/login', async (req, res) => {
 });
 router.get('/logout', (req, res) => { req.session.destroy(); res.redirect('/'); });
 
-// --- MAHASISWA & PSIKOLOG (Logic tetap sama) ---
+// --- MAHASISWA & PSIKOLOG (Logic Tetap) ---
 router.get('/mahasiswa/:id', auth('mahasiswa'), async (req, res) => {
     const [psikolog] = await db.query('SELECT * FROM psikolog_status WHERE is_active = 1');
     const [reservasi] = await db.query('SELECT * FROM reservasi WHERE mahasiswa_id = ?', [req.params.id]);
@@ -43,7 +43,7 @@ router.get('/psikolog/:id', auth('psikolog'), async (req, res) => {
     res.render('psikolog_dashboard', { daftar, psiId: req.params.id });
 });
 
-// --- ADMIN ROUTES (FULL CRUD) ---
+// --- ADMIN ROUTES (CRUD DENGAN HARI TERPISAH) ---
 router.get('/admin/:id', auth('admin'), async (req, res) => {
     const [dataPsikolog] = await db.query(`SELECT ps.*, u.username, u.password FROM psikolog_status ps JOIN users u ON ps.id = u.id`);
     const [dataMahasiswa] = await db.query("SELECT * FROM users WHERE role = 'mahasiswa'");
@@ -51,10 +51,10 @@ router.get('/admin/:id', auth('admin'), async (req, res) => {
     res.render('admin_dashboard', { psikolog: dataPsikolog, mahasiswa: dataMahasiswa, total: totalRes[0].total, adminId: req.params.id });
 });
 
-// CREATE
+// CREATE PSIKOLOG (Hari Dipisah)
 router.post('/admin/psikolog/add', auth('admin'), async (req, res) => {
-    const { nama, hari, jam_mulai, jam_selesai, username, password } = req.body;
-    const jadwal = `${hari}, ${jam_mulai} - ${jam_selesai}`;
+    const { nama, hari_mulai, hari_sampai, jam_mulai, jam_selesai, username, password } = req.body;
+    const jadwal = `${hari_mulai} - ${hari_sampai}, ${jam_mulai} - ${jam_selesai}`;
     try {
         const [result] = await db.query('INSERT INTO users (username, password, role) VALUES (?, ?, "psikolog")', [username, password]);
         await db.query('INSERT INTO psikolog_status (id, nama_psikolog, jadwal_tugas, is_active) VALUES (?, ?, ?, 1)', [result.insertId, nama, jadwal]);
@@ -87,8 +87,6 @@ router.get('/admin/user/delete/:userId/:adminId', auth('admin'), async (req, res
     try {
         const { userId, adminId } = req.params;
         await db.query('DELETE FROM users WHERE id = ?', [userId]); 
-        // psikolog_status akan terhapus otomatis jika menggunakan ON DELETE CASCADE di database, 
-        // jika tidak, kita hapus manual:
         await db.query('DELETE FROM psikolog_status WHERE id = ?', [userId]);
         res.redirect('/admin/' + adminId);
     } catch (err) { res.send("<script>alert('Gagal Hapus!'); window.history.back();</script>"); }
