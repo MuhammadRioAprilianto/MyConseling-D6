@@ -7,17 +7,14 @@
                 <h5 class="fw-bold text-primary mb-4">Form Konseling</h5>
                 <form action="/reservasi/add" method="POST">
                     <input type="hidden" name="mhsId" value="<%= mhsId %>">
-                    
                     <div class="mb-3">
                         <label class="form-label small fw-bold">NIM</label>
-                        <input type="text" name="nim" class="form-control" placeholder="Masukkan NIM" required>
+                        <input type="text" name="nim" class="form-control" required>
                     </div>
-                    
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Nama Lengkap</label>
-                        <input type="text" name="nama" class="form-control" placeholder="Nama Mahasiswa" required>
+                        <input type="text" name="nama" class="form-control" required>
                     </div>
-                    
                     <div class="mb-3">
                         <label class="form-label small fw-bold">Pilih Psikolog</label>
                         <select name="psikologId" class="form-select" required>
@@ -27,7 +24,6 @@
                             <% }) %>
                         </select>
                     </div>
-
                     <div class="row">
                         <div class="col-6 mb-3">
                             <label class="form-label small fw-bold">Tanggal</label>
@@ -38,8 +34,7 @@
                             <input type="time" name="waktu" class="form-control" required>
                         </div>
                     </div>
-                    
-                    <button type="submit" class="btn btn-primary w-100 fw-bold py-2 mt-2">Ajukan Reservasi</button>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Ajukan Reservasi</button>
                 </form>
             </div>
         </div>
@@ -53,7 +48,7 @@
                     <table class="table table-hover align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th>Psikolog</th>
+                                <th>Psikolog ID</th>
                                 <th>Jadwal</th>
                                 <th>Status</th>
                                 <th>Aksi</th>
@@ -63,31 +58,60 @@
                             <% if(reservasi.length > 0) { %>
                                 <% reservasi.forEach(r => { %>
                                     <tr>
-                                        <td><strong>ID Psikolog: <%= r.psikolog_id %></strong></td>
+                                        <td>ID: <%= r.psikolog_id %></td>
                                         <td>
                                             <div class="small fw-bold"><%= r.tanggal.toLocaleDateString('id-ID') %></div>
                                             <div class="text-muted small"><%= r.waktu %></div>
                                         </td>
                                         <td>
-                                            <% if(r.status == 'menunggu') { %>
-                                                <span class="badge bg-warning text-dark">Menunggu</span>
-                                            <% } else if(r.status == 'dikonfirmasi') { %>
-                                                <span class="badge bg-success">Dikonfirmasi</span>
-                                            <% } else { %>
-                                                <span class="badge bg-danger">Ditolak</span>
-                                            <% } %>
+                                            <span class="badge <%= r.status === 'menunggu' ? 'bg-warning text-dark' : 'bg-success' %>">
+                                                <%= r.status %>
+                                            </span>
                                         </td>
                                         <td>
-                                            <a href="/reservasi/delete/<%= r.id %>/<%= mhsId %>" 
-                                               class="btn btn-sm btn-outline-danger" 
-                                               onclick="return confirm('Apakah Anda yakin ingin membatalkan ini?')">Batal</a>
+                                            <button class="btn btn-sm btn-outline-warning me-1" data-bs-toggle="modal" data-bs-target="#editModal<%= r.id %>">Edit</button>
+                                            <a href="/reservasi/delete/<%= r.id %>/<%= mhsId %>" class="btn btn-sm btn-outline-danger" onclick="return confirm('Batalkan?')">Batal</a>
                                         </td>
                                     </tr>
+
+                                    <div class="modal fade" id="editModal<%= r.id %>" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Edit Pengajuan</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <form action="/reservasi/update" method="POST">
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="resId" value="<%= r.id %>">
+                                                        <input type="hidden" name="mhsId" value="<%= mhsId %>">
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold">Pilih Psikolog Baru</label>
+                                                            <select name="psikologId" class="form-select" required>
+                                                                <% psikolog.forEach(p => { %>
+                                                                    <option value="<%= p.id %>" <%= r.psikolog_id == p.id ? 'selected' : '' %>><%= p.nama_psikolog %></option>
+                                                                <% }) %>
+                                                            </select>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold">Tanggal Baru</label>
+                                                            <input type="date" name="tanggal" class="form-control" value="<%= r.tanggal.toISOString().split('T')[0] %>" required>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label small fw-bold">Waktu Baru</label>
+                                                            <input type="time" name="waktu" class="form-control" value="<%= r.waktu %>" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
                                 <% }) %>
                             <% } else { %>
-                                <tr>
-                                    <td colspan="4" class="text-center py-4 text-muted">Belum ada pengajuan reservasi.</td>
-                                </tr>
+                                <tr><td colspan="4" class="text-center py-4 text-muted">Tidak ada data.</td></tr>
                             <% } %>
                         </tbody>
                     </table>
