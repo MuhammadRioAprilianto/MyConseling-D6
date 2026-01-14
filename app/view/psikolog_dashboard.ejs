@@ -1,55 +1,63 @@
 <%- include('partials/header') %>
 
-<div class="card p-4 mb-4 bg-primary text-white">
-    <div class="d-flex justify-content-between align-items-center">
-        <div>
-            <h4>Dashboard Psikolog</h4>
-            <p class="mb-0">Kelola permintaan konseling mahasiswa</p>
-        </div>
-        <div class="form-check form-switch bg-white text-dark p-2 px-4 rounded-pill">
-            <input class="form-check-input" type="checkbox" id="statusKerja" checked>
-            <label class="form-check-label" for="statusKerja">Status: Siap Bertugas</label>
-        </div>
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="fw-bold text-primary">Daftar Pengajuan Konseling</h3>
+        <span class="badge bg-info p-2">Psikolog ID: <%= psiId %></span>
     </div>
-</div>
 
-<div class="card p-4">
-    <h5 class="mb-4">Daftar Reservasi Masuk</h5>
-    <div class="table-responsive">
-        <table class="table align-middle">
-            <thead class="table-light">
-                <tr>
-                    <th>Mahasiswa</th>
-                    <th>Jadwal Diajukan</th>
-                    <th>Keputusan</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% daftar.forEach(d => { %>
-                    <tr>
-                        <td>
-                            <strong><%= d.nama_mhs %></strong><br>
-                            <small class="text-muted">NIM: <%= d.nim %></small>
-                        </td>
-                        <td><%= d.tanggal %> | <%= d.waktu %></td>
-                        <td>
-                            <% if(d.status === 'menunggu') { %>
-                                <form action="/psikolog/update-status" method="POST" class="d-inline">
-                                    <input type="hidden" name="resId" value="<%= d.id %>">
-                                    <input type="hidden" name="psiId" value="<%= psiId %>">
-                                    <button name="status" value="dikonfirmasi" class="btn btn-sm btn-success px-3">Terima</button>
-                                    <button name="status" value="ditolak" class="btn btn-sm btn-danger px-3">Tolak</button>
-                                </form>
-                            <% } else { %>
-                                <span class="badge <%= d.status === 'dikonfirmasi' ? 'bg-success' : 'bg-danger' %>">
-                                    <%= d.status.toUpperCase() %>
-                                </span>
-                            <% } %>
-                        </td>
-                    </tr>
-                <% }) %>
-            </tbody>
-        </table>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-4">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mahasiswa</th>
+                            <th>NIM</th>
+                            <th>Jadwal</th>
+                            <th>Status saat ini</th>
+                            <th>Aksi Konfirmasi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% if(daftar.length > 0) { %>
+                            <% daftar.forEach(r => { %>
+                                <tr>
+                                    <td><strong><%= r.nama_mhs %></strong></td>
+                                    <td><%= r.nim %></td>
+                                    <td>
+                                        <div class="small fw-bold"><%= r.tanggal.toLocaleDateString('id-ID') %></div>
+                                        <div class="text-muted small"><%= r.waktu %></div>
+                                    </td>
+                                    <td>
+                                        <span class="badge rounded-pill <%= r.status === 'menunggu' ? 'bg-warning text-dark' : 'bg-success' %>">
+                                            <%= r.status %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <% if(r.status === 'menunggu') { %>
+                                            <form action="/psikolog/update-status" method="POST" class="d-inline">
+                                                <input type="hidden" name="resId" value="<%= r.id %>">
+                                                <input type="hidden" name="psiId" value="<%= psiId %>">
+                                                
+                                                <button type="submit" name="status" value="dikonfirmasi" class="btn btn-sm btn-success me-1">Terima</button>
+                                                <button type="submit" name="status" value="ditolak" class="btn btn-sm btn-danger" onclick="return confirm('Tolak dan hapus pengajuan ini?')">Tolak</button>
+                                            </form>
+                                        <% } else { %>
+                                            <button class="btn btn-sm btn-secondary" disabled>Selesai</button>
+                                        <% } %>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        <% } else { %>
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">Belum ada pengajuan masuk untuk Anda.</td>
+                            </tr>
+                        <% } %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
