@@ -7,8 +7,8 @@
 
     <div class="row g-4">
         <div class="col-md-6">
-            <div class="card shadow-sm border-0 p-4">
-                <h5 class="fw-bold mb-3">Tambah Psikolog</h5>
+            <div class="card shadow-sm border-0 p-4 h-100">
+                <h5 class="fw-bold mb-3 text-secondary">Tambah Psikolog</h5>
                 <form action="/admin/psikolog/add" method="POST">
                     <input type="hidden" name="adminId" value="<%= adminId %>">
                     <input type="text" name="nama" class="form-control mb-2" placeholder="Nama Psikolog" required>
@@ -22,56 +22,72 @@
                     </div>
                     <input type="text" name="username" class="form-control mb-2" placeholder="Username" required>
                     <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
-                    <button type="submit" class="btn btn-primary w-100">Daftarkan</button>
+                    <button type="submit" class="btn btn-primary w-100 fw-bold">Daftarkan Psikolog</button>
                 </form>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card shadow-sm border-0 p-4">
-                <h5 class="fw-bold mb-3">Tambah Mahasiswa</h5>
-                <form action="/admin/mahasiswa/add" method="POST">
-                    <input type="hidden" name="adminId" value="<%= adminId %>">
-                    <input type="text" name="username" class="form-control mb-2" placeholder="NIM" required>
-                    <input type="password" name="password" class="form-control mb-3" placeholder="Password" required>
-                    <button type="submit" class="btn btn-success w-100">Daftarkan</button>
-                </form>
-            </div>
-        </div>
-    </div>
 
-    <div class="card shadow-sm border-0 mt-5 p-4">
-        <h5 class="fw-bold mb-3">Manajemen Akun Psikolog</h5>
-        <table class="table align-middle">
-            <thead><tr><th>Nama</th><th>Jadwal</th><th>Username/Password</th><th>Aksi</th></tr></thead>
-            <tbody>
-                <% psikolog.forEach(p => { %>
-                <tr>
-                    <td><%= p.nama_psikolog %></td>
-                    <td><span class="badge bg-info text-dark"><%= p.jadwal_tugas %></span></td>
-                    <td><small>U: <%= p.username %> / P: <%= p.password %></small></td>
-                    <td>
-                        <button class="btn btn-sm btn-warning" data-bs-toggle="modal" data-bs-target="#editUser<%= p.id %>">Edit</button>
-                        <a href="/admin/user/delete/<%= p.id %>/<%= adminId %>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a>
-                    </td>
-                </tr>
-                <div class="modal fade" id="editUser<%= p.id %>" tabindex="-1">
-                    <div class="modal-dialog">
-                        <form action="/admin/user/update" method="POST" class="modal-content">
-                            <div class="modal-header"><h5>Edit Akun</h5></div>
-                            <div class="modal-body">
-                                <input type="hidden" name="userId" value="<%= p.id %>"><input type="hidden" name="adminId" value="<%= adminId %>"><input type="hidden" name="role" value="psikolog">
-                                <input type="text" name="nama" value="<%= p.nama_psikolog %>" class="form-control mb-2">
-                                <input type="text" name="jadwal" value="<%= p.jadwal_tugas %>" class="form-control mb-2">
-                                <input type="text" name="username" value="<%= p.username %>" class="form-control mb-2">
-                                <input type="text" name="password" value="<%= p.password %>" class="form-control">
+        <div class="col-md-12">
+            <div class="card shadow-sm border-0 mt-2 p-4">
+                <h5 class="fw-bold mb-3 text-primary">Daftar Akun Psikolog</h5>
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Nama Psikolog</th>
+                            <th>Jadwal</th>
+                            <th>User/Pass</th>
+                            <th class="text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% psikolog.forEach(p => { %>
+                        <tr>
+                            <td class="fw-bold"><%= p.nama_psikolog %></td>
+                            <td><span class="badge bg-info text-dark"><%= p.jadwal_tugas %></span></td>
+                            <td><small>U: <%= p.username %><br>P: <%= p.password %></small></td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-warning fw-bold" data-bs-toggle="modal" data-bs-target="#editPsi<%= p.id %>">Edit</button>
+                                <a href="/admin/user/delete/<%= p.id %>/<%= adminId %>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus?')">Hapus</a>
+                            </td>
+                        </tr>
+
+                        <div class="modal fade" id="editPsi<%= p.id %>" tabindex="-1">
+                            <div class="modal-dialog">
+                                <form action="/admin/user/update" method="POST" class="modal-content text-start">
+                                    <div class="modal-header"><h5 class="fw-bold">Update Akun Psikolog</h5></div>
+                                    <div class="modal-body">
+                                        <input type="hidden" name="userId" value="<%= p.id %>">
+                                        <input type="hidden" name="adminId" value="<%= adminId %>">
+                                        <input type="hidden" name="role" value="psikolog">
+                                        
+                                        <div class="mb-2">
+                                            <label class="small fw-bold">Nama Psikolog</label>
+                                            <input type="text" name="nama" value="<%= p.nama_psikolog %>" class="form-control" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="small fw-bold">Jadwal Tugas</label>
+                                            <input type="text" name="jadwal" value="<%= p.jadwal_tugas %>" class="form-control" required>
+                                        </div>
+                                        <div class="mb-2">
+                                            <label class="small fw-bold">Username Login</label>
+                                            <input type="text" name="username" value="<%= p.username %>" class="form-control" required>
+                                        </div>
+                                        <div class="mb-0">
+                                            <label class="small fw-bold">Password Login</label>
+                                            <input type="text" name="password" value="<%= p.password %>" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-primary w-100 fw-bold">Simpan Perubahan</button>
+                                    </div>
+                                </form>
                             </div>
-                            <div class="modal-footer"><button type="submit" class="btn btn-primary">Update</button></div>
-                        </form>
-                    </div>
-                </div>
-                <% }) %>
-            </tbody>
-        </table>
+                        </div>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 <%- include('partials/footer') %>
