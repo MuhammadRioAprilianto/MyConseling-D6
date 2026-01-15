@@ -64,20 +64,37 @@ router.post('/reservasi/add', auth('mahasiswa'), async (req, res) => {
     res.redirect(`/mahasiswa/${mhsId}`);
 });
 
+// --- PERBAIKAN EDIT DATA MAHASISWA ---
 router.post('/reservasi/update', auth('mahasiswa'), async (req, res) => {
     const { resId, mhsId, tanggal, waktu, psikologId } = req.body;
     try {
+        // 1. Cek jadwal tugas psikolog yang baru dipilih
         const [psi] = await db.query('SELECT jadwal_tugas FROM psikolog_status WHERE id = ?', [psikologId]);
         if (!isDayInRange(tanggal, psi[0].jadwal_tugas)) {
             return res.send("<script>alert('Update Gagal! Hari tidak sesuai jadwal tugas psikolog.'); window.history.back();</script>");
         }
-        const [cek] = await db.query('SELECT * FROM reservasi WHERE tanggal=? AND waktu=? AND psikolog_id=? AND id != ? AND status != "ditolak"', [tanggal, waktu, psikologId, resId]);
+
+        // 2. Cek apakah jam baru bentrok dengan reservasi orang lain
+        const [cek] = await db.query(
+            'SELECT * FROM reservasi WHERE tanggal=? AND waktu=? AND psikolog_id=? AND id != ? AND status != "ditolak"', 
+            [tanggal, waktu, psikologId, resId]
+        );
+        
         if (cek.length > 0) {
             return res.send("<script>alert('Jadwal baru bentrok dengan mahasiswa lain!'); window.history.back();</script>");
         }
-        await db.query('UPDATE reservasi SET tanggal=?, waktu=?, psikolog_id=?, status="menunggu" WHERE id=? AND mahasiswa_id=?', [tanggal, waktu, psikologId, resId, mhsId]);
+
+        // 3. Update data dan reset status menjadi 'menunggu'
+        await db.query(
+            'UPDATE reservasi SET tanggal=?, waktu=?, psikolog_id=?, status="menunggu" WHERE id=? AND mahasiswa_id=?', 
+            [tanggal, waktu, psikologId, resId, mhsId]
+        );
+        
         res.send(`<script>alert('Berhasil! Jadwal telah diperbarui.'); window.location='/mahasiswa/${mhsId}';</script>`);
-    } catch (err) { res.status(500).send("Error System"); }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Terjadi kesalahan sistem saat update.");
+    }
 });
 
 router.get('/reservasi/delete/:id/:mhsId', auth('mahasiswa'), async (req, res) => {
@@ -97,7 +114,7 @@ router.post('/psikolog/update-status', auth('psikolog'), async (req, res) => {
     res.redirect(`/psikolog/${psiId}`);
 });
 
-// --- ADMIN (CRUD USER DENGAN FIX UPDATE) ---
+// --- ADMIN (CRUD USER) ---
 router.get('/admin/:id', auth('admin'), async (req, res) => {
     const [dataPsikolog] = await db.query(`SELECT ps.*, u.username, u.password FROM psikolog_status ps JOIN users u ON ps.id = u.id`);
     const [dataMahasiswa] = await db.query("SELECT * FROM users WHERE role = 'mahasiswa'");
@@ -119,23 +136,11 @@ router.post('/admin/mahasiswa/add', auth('admin'), async (req, res) => {
     res.redirect('/admin/' + adminId);
 });
 
-// LOGIKA UPDATE ADMIN TERBARU (SINKRON DENGAN MODAL)
 router.post('/admin/user/update', auth('admin'), async (req, res) => {
     const { userId, username, password, nama, jadwal, role, adminId } = req.body;
-    try {
-        // 1. Update tabel users (Login)
-        await db.query('UPDATE users SET username=?, password=? WHERE id=?', [username, password, userId]);
-        
-        // 2. Jika role adalah psikolog, update tabel profil psikolog
-        if (role === 'psikolog') {
-            await db.query('UPDATE psikolog_status SET nama_psikolog=?, jadwal_tugas=? WHERE id=?', [nama, jadwal, userId]);
-        }
-        
-        res.send(`<script>alert('Update Berhasil!'); window.location='/admin/${adminId}';</script>`);
-    } catch (err) {
-        console.error(err);
-        res.send("<script>alert('Update Gagal!'); window.history.back();</script>");
-    }
+    await db.query('UPDATE users SET username=?, password=? WHERE id=?', [username, password, userId]);
+    if (role === 'psikolog') await db.query('UPDATE psikolog_status SET nama_psikolog=?, jadwal_tugas=? WHERE id=?', [nama, jadwal, userId]);
+    res.redirect('/admin/' + adminId);
 });
 
 router.get('/admin/user/delete/:userId/:adminId', auth('admin'), async (req, res) => {
