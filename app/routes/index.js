@@ -64,12 +64,37 @@ router.post('/reservasi/add', auth('mahasiswa'), async (req, res) => {
     res.redirect(`/mahasiswa/${mhsId}`);
 });
 
+// --- PERBAIKAN EDIT DATA MAHASISWA ---
 router.post('/reservasi/update', auth('mahasiswa'), async (req, res) => {
     const { resId, mhsId, tanggal, waktu, psikologId } = req.body;
-    const [cek] = await db.query('SELECT * FROM reservasi WHERE tanggal=? AND waktu=? AND psikolog_id=? AND id!=? AND status!="ditolak"', [tanggal, waktu, psikologId, resId]);
-    if (cek.length > 0) return res.send("<script>alert('Jadwal bentrok!'); window.history.back();</script>");
-    await db.query('UPDATE reservasi SET tanggal=?, waktu=?, psikolog_id=?, status="menunggu" WHERE id=?', [tanggal, waktu, psikologId, resId]);
-    res.redirect(`/mahasiswa/${mhsId}`);
+    try {
+        // 1. Cek jadwal tugas psikolog yang baru dipilih
+        const [psi] = await db.query('SELECT jadwal_tugas FROM psikolog_status WHERE id = ?', [psikologId]);
+        if (!isDayInRange(tanggal, psi[0].jadwal_tugas)) {
+            return res.send("<script>alert('Update Gagal! Hari tidak sesuai jadwal tugas psikolog.'); window.history.back();</script>");
+        }
+
+        // 2. Cek apakah jam baru bentrok dengan reservasi orang lain
+        const [cek] = await db.query(
+            'SELECT * FROM reservasi WHERE tanggal=? AND waktu=? AND psikolog_id=? AND id != ? AND status != "ditolak"', 
+            [tanggal, waktu, psikologId, resId]
+        );
+        
+        if (cek.length > 0) {
+            return res.send("<script>alert('Jadwal baru bentrok dengan mahasiswa lain!'); window.history.back();</script>");
+        }
+
+        // 3. Update data dan reset status menjadi 'menunggu'
+        await db.query(
+            'UPDATE reservasi SET tanggal=?, waktu=?, psikolog_id=?, status="menunggu" WHERE id=? AND mahasiswa_id=?', 
+            [tanggal, waktu, psikologId, resId, mhsId]
+        );
+        
+        res.send(`<script>alert('Berhasil! Jadwal telah diperbarui.'); window.location='/mahasiswa/${mhsId}';</script>`);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Terjadi kesalahan sistem saat update.");
+    }
 });
 
 router.get('/reservasi/delete/:id/:mhsId', auth('mahasiswa'), async (req, res) => {
